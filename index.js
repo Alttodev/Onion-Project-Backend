@@ -1,11 +1,13 @@
 const express = require('express')
-// require('dotenv').config();
+require('dotenv').config();
 const cors = require('cors')
 const mongoose = require('mongoose');
+const customerRouter = require('./routes/customerRoutes');
 
-const MONGODB_URI = 'mongodb://localhost:27017/Shop';
 
-// const usersRouter = require('./customer.js');
+const MONGODB_URI = 'mongodb://localhost:27017/ONION-SHOP';
+
+
 
 mongoose.connect(MONGODB_URI, {
 })
@@ -18,12 +20,12 @@ app.use(express.json());
 
 
 app.use(cors({
-   origin: "http://localhost:5174",
+   origin: "http://localhost:5173",
 }))
 
-const port = 3000
+const port = 4000
 
-// app.use('/users', usersRouter);
+app.use('/customers', customerRouter);
 
 
 
