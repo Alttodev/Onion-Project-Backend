@@ -8,7 +8,7 @@ router.get("/get", async (req, res) => {
 
     const filter = username
       ? { username: { $regex: username, $options: "i" } }
-      : {}; 
+      : {};
 
     const users = await Customer.find(filter);
 
@@ -18,7 +18,7 @@ router.get("/get", async (req, res) => {
 
     res.status(200).json({
       message: "Customer listed successfully",
-      data: users, 
+      data: users,
     });
   } catch (err) {
     res.status(500).json({ message: "Error fetching data" });
@@ -58,6 +58,44 @@ router.post("/create", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/info/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Customer not found" });
+    }
+    const user = await Customer.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.status(200).json({
+      message: "Customer  viewed successfully",
+      data: user,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching user" });
+  }
+});
+
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await Customer.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+    res.status(200).json({
+      message: "Customer deleted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error deleting Customer" });
   }
 });
 
