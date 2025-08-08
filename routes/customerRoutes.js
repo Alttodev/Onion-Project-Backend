@@ -61,6 +61,43 @@ router.post("/create", async (req, res) => {
   }
 });
 
+router.put("/update/:id", async (req, res) => {
+  try {
+    const { username, unit, amount, received, balance, status, date } =
+      req.body;
+    const { id } = req.params;
+    if (!username) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+
+    if (!unit) {
+      return res.status(400).json({ message: "Unit is required" });
+    }
+
+    if (!amount) {
+      return res.status(400).json({ message: "Amount is required" });
+    }
+
+    const user = await Customer.findByIdAndUpdate(
+      id,
+      { username, unit, amount, received, balance, status, date },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.status(200).json({
+      message: "Customer updated successfully",
+      data: user,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error updating user" });
+  }
+});
+
 router.get("/info/:id", async (req, res) => {
   try {
     const { id } = req.params;
