@@ -6,23 +6,39 @@ const router = express.Router();
 
 router.get("/get", async (req, res) => {
   try {
-    // const { username } = req.query;
+    const { search, date, page = 1, limit = 5 } = req.query;
 
-    // const filter = username
-    //   ? { username: { $regex: username, $options: "i" } }
-    //   : {};
+    let filter = {};
 
-    const users = await Customer.find();
-
-    if (!users.length) {
-      return res.status(404).json({ message: "No users found" });
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [{ username: regex }, { status: regex }, { amount: regex }];
     }
+
+    if (date) {
+      const start = new Date(date);
+      start.setUTCHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setUTCHours(23, 59, 59, 999);
+      filter.date = { $gte: start, $lte: end };
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [users, total] = await Promise.all([
+      Customer.find(filter).skip(skip).limit(Number(limit)),
+      Customer.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       message: "Customer listed successfully",
       data: users,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Error fetching data" });
   }
 });
