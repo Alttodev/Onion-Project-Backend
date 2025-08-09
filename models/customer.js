@@ -1,11 +1,14 @@
 const mongoose = require("mongoose");
 
 const CustomerSchema = new mongoose.Schema({
-  username: String,
-  unit: Number,
-  amount: Number,
-  received: Number,
-  balance: Number,
+  username: {
+    type: String,
+    unique: true,
+  },
+  unit: String,
+  amount: String,
+  received:String,
+  balance: String,
   status: {
     type: String,
     enum: ["pending", "completed"],

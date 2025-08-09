@@ -1,35 +1,31 @@
-const express = require('express')
-require('dotenv').config();
-const cors = require('cors')
-const mongoose = require('mongoose');
-const customerRouter = require('./routes/customerRoutes');
+const express = require("express");
+require("dotenv").config();
+const cors = require("cors");
+const mongoose = require("mongoose");
+const customerRouter = require("./routes/customerRoutes");
 
+const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
 
-const MONGODB_URI = 'mongodb://localhost:27017/ONION-SHOP';
+mongoose
+  .connect(MONGODB_URI, {})
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((error) => console.error("Failed to connect to MongoDB", error));
 
-
-
-mongoose.connect(MONGODB_URI, {
-})
-  .then(() => console.log('Connected to MongoDB'))
-    .catch((error) => console.error('Failed to connect to MongoDB', error));
-  
-const app = express()
+const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  cors({
+    origin: "http://localhost:5174",
+  })
+);
 
-app.use(cors({
-   origin: "http://localhost:5174",
-}))
+const port = 3000;
 
-const port = 3000
-
-app.use('/customers', customerRouter);
-
-
-
+app.use("/customers", customerRouter);
 
 app.listen(port, () => {
-  console.log(`Port is running ${port}`)
-})
+  console.log(`Port is running ${port}`);
+});

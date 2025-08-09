@@ -2,15 +2,17 @@ const express = require("express");
 const Customer = require("../models/customer");
 const router = express.Router();
 
+//get
+
 router.get("/get", async (req, res) => {
   try {
-    const { username } = req.query;
+    // const { username } = req.query;
 
-    const filter = username
-      ? { username: { $regex: username, $options: "i" } }
-      : {};
+    // const filter = username
+    //   ? { username: { $regex: username, $options: "i" } }
+    //   : {};
 
-    const users = await Customer.find(filter);
+    const users = await Customer.find();
 
     if (!users.length) {
       return res.status(404).json({ message: "No users found" });
@@ -24,6 +26,8 @@ router.get("/get", async (req, res) => {
     res.status(500).json({ message: "Error fetching data" });
   }
 });
+
+//post
 
 router.post("/create", async (req, res) => {
   try {
@@ -57,9 +61,14 @@ router.post("/create", async (req, res) => {
       message: "Customer created successfully",
     });
   } catch (err) {
+    if (err.code === 11000 && err.keyPattern && err.keyPattern.username) {
+      return res.status(409).json({ message: "Username already exists." });
+    }
     res.status(500).json({ message: "Server error" });
   }
 });
+
+//update
 
 router.put("/update/:id", async (req, res) => {
   try {
@@ -69,11 +78,9 @@ router.put("/update/:id", async (req, res) => {
     if (!username) {
       return res.status(400).json({ message: "Username is required" });
     }
-
     if (!unit) {
       return res.status(400).json({ message: "Unit is required" });
     }
-
     if (!amount) {
       return res.status(400).json({ message: "Amount is required" });
     }
@@ -81,7 +88,9 @@ router.put("/update/:id", async (req, res) => {
     const user = await Customer.findByIdAndUpdate(
       id,
       { username, unit, amount, received, balance, status, date },
-      { new: true }
+      {
+        new: true,
+      }
     );
 
     if (!user) {
@@ -98,6 +107,7 @@ router.put("/update/:id", async (req, res) => {
   }
 });
 
+//info
 router.get("/info/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -119,6 +129,8 @@ router.get("/info/:id", async (req, res) => {
     res.status(500).json({ message: "Error fetching user" });
   }
 });
+
+//delete
 
 router.delete("/delete/:id", async (req, res) => {
   try {
