@@ -46,14 +46,18 @@ router.post("/create", async (req, res) => {
       return res.status(400).json({ message: "Amount is required" });
     }
 
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
     const newCustomer = new Customer({
       username,
       unit,
       amount,
       received,
       balance,
-      status,
-      date,
+      status: status || undefined,
+      date: date || undefined,
     });
     await newCustomer.save();
 
@@ -85,9 +89,21 @@ router.put("/update/:id", async (req, res) => {
       return res.status(400).json({ message: "Amount is required" });
     }
 
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
     const user = await Customer.findByIdAndUpdate(
       id,
-      { username, unit, amount, received, balance, status, date },
+      {
+        username,
+        unit,
+        amount,
+        received,
+        balance,
+        status: status || undefined,
+        date: date || undefined,
+      },
       {
         new: true,
       }

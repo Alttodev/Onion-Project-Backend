@@ -12,7 +12,6 @@ const CustomerSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["pending", "completed"],
-    required: false,
   },
   date: {
     type: Date,
