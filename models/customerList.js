@@ -1,22 +1,27 @@
 const mongoose = require("mongoose");
 
-const CustomerListSchema = new mongoose.Schema({
-  unit: String,
-  amount: String,
-  received: String,
-  balance: String,
-  status: {
-    type: String,
-    enum: ["pending", "completed"],
+const CustomerListSchema = new mongoose.Schema(
+  {
+    unit: String,
+    amount: String,
+    received: String,
+    balance: String,
+    status: {
+      type: String,
+      enum: ["pending", "completed"],
+    },
+    createdDate: {
+      type: Date,
+    },
+    updatedDate: {
+      type: Date,
+    },
+    customerId: {
+      type: String,
+      required: true,
+    },
   },
-  date: {
-    type: Date,
-  },
-  customerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "customer",
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("customerList", CustomerListSchema);

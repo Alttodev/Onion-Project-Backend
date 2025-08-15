@@ -27,7 +27,11 @@ router.get("/get", async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [users, total] = await Promise.all([
-      customer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+      customer
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
       customer.countDocuments(filter),
     ]);
 
@@ -68,13 +72,7 @@ router.post("/create", async (req, res) => {
       phone,
       date,
     });
-    const savedCustomer = await newCustomer.save();
-
-    const newData = new customerList({
-      customerId: savedCustomer._id,
-    });
-
-    await newData.save();
+    await newCustomer.save();
 
     res.status(201).json({
       message: "Customer created successfully",
@@ -161,7 +159,7 @@ router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await customer.findByIdAndDelete(id);
-     await customerList.deleteMany({ customerId: id });
+    await customerList.deleteMany({ customerId: id });
 
     if (!deletedUser) {
       return res.status(404).json({ message: "Customer not found" });
@@ -175,6 +173,5 @@ router.delete("/delete/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting Customer" });
   }
 });
-
 
 module.exports = router;

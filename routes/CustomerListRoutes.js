@@ -1,18 +1,18 @@
 const express = require("express");
-const Customer = require("../models/customerList");
+const customerList = require("../models/customerList");
 const router = express.Router();
 
 //get
 
-router.get("/get", async (req, res) => {
+router.get("/get/:id", async (req, res) => {
   try {
     const { search, date, page = 1, limit = 5 } = req.query;
-
-    let filter = {};
+    const { id } = req.params;
+    let filter = { customerId: id };
 
     if (search) {
       const regex = new RegExp(search, "i");
-      filter.$or = [{ username: regex }, { status: regex }, { amount: regex }];
+      filter.$or = [{ status: regex }, { amount: regex }];
     }
 
     if (date) {
@@ -20,18 +20,18 @@ router.get("/get", async (req, res) => {
       start.setUTCHours(0, 0, 0, 0);
       const end = new Date(date);
       end.setUTCHours(23, 59, 59, 999);
-      filter.date = { $gte: start, $lte: end };
+      filter.createdDate = { $gte: start, $lte: end };
     }
 
     const skip = (Number(page) - 1) * Number(limit);
 
     const [users, total] = await Promise.all([
-      Customer.find(filter).skip(skip).limit(Number(limit)),
-      Customer.countDocuments(filter),
+      customerList.find(filter).skip(skip).limit(Number(limit)),
+      customerList.countDocuments(filter),
     ]);
 
     res.status(200).json({
-      message: "Customer listed successfully",
+      message: "CustomerList listed successfully",
       data: users,
       total,
       page: Number(page),
@@ -39,7 +39,7 @@ router.get("/get", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error fetching data" });
+    res.status(500).json({ message: "Error fetching CustomerList" });
   }
 });
 
@@ -47,12 +47,16 @@ router.get("/get", async (req, res) => {
 
 router.post("/create", async (req, res) => {
   try {
-    const { username, unit, amount, received, balance, status, date } =
-      req.body;
-
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
-    }
+    const {
+      unit,
+      amount,
+      received,
+      balance,
+      status,
+      customerId,
+      createdDate,
+      updatedDate,
+    } = req.body;
 
     if (!unit) {
       return res.status(400).json({ message: "Unit is required" });
@@ -72,24 +76,22 @@ router.post("/create", async (req, res) => {
         .json({ message: "Balance should be zero to complete" });
     }
 
-    const newCustomer = new Customer({
-      username,
+    const newCustomer = new customerList({
       unit,
       amount,
       received,
       balance,
       status: status || undefined,
-      date: date || undefined,
+      createdDate: createdDate || undefined,
+      updatedDate: updatedDate || undefined,
+      customerId,
     });
     await newCustomer.save();
 
     res.status(201).json({
-      message: "Customer created successfully",
+      message: "CustomerList created successfully",
     });
   } catch (err) {
-    if (err.code === 11000 && err.keyPattern && err.keyPattern.username) {
-      return res.status(409).json({ message: "Username already exists." });
-    }
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -98,12 +100,18 @@ router.post("/create", async (req, res) => {
 
 router.put("/update/:id", async (req, res) => {
   try {
-    const { username, unit, amount, received, balance, status, date } =
-      req.body;
+    const {
+      unit,
+      amount,
+      received,
+      balance,
+      status,
+      customerId,
+      createdDate,
+      updatedDate,
+    } = req.body;
     const { id } = req.params;
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
-    }
+
     if (!unit) {
       return res.status(400).json({ message: "Unit is required" });
     }
@@ -121,16 +129,17 @@ router.put("/update/:id", async (req, res) => {
         .json({ message: "Balance should be zero to complete" });
     }
 
-    const user = await Customer.findByIdAndUpdate(
+    const user = await customerList.findByIdAndUpdate(
       id,
       {
-        username,
         unit,
         amount,
         received,
         balance,
+        customerId,
         status: status || undefined,
-        date: date || undefined,
+        createdDate: createdDate || undefined,
+        updatedDate: updatedDate || undefined,
       },
       {
         new: true,
@@ -138,16 +147,16 @@ router.put("/update/:id", async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ message: "Customer not found" });
+      return res.status(404).json({ message: "CustomerList not found" });
     }
 
     res.status(200).json({
-      message: "Customer updated successfully",
+      message: "CustomerList updated successfully",
       data: user,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error updating user" });
+    res.status(500).json({ message: "Error updating CustomerList" });
   }
 });
 
@@ -157,20 +166,20 @@ router.get("/info/:id", async (req, res) => {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ message: "Customer not found" });
+      return res.status(400).json({ message: "CustomerList not found" });
     }
-    const user = await Customer.findById(id);
+    const user = await customerList.findById(id);
 
     if (!user) {
-      return res.status(404).json({ message: "Customer not found" });
+      return res.status(404).json({ message: "CustomerList not found" });
     }
 
     res.status(200).json({
-      message: "Customer  viewed successfully",
+      message: "CustomerList  viewed successfully",
       data: user,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching user" });
+    res.status(500).json({ message: "Error fetching CustomerList" });
   }
 });
 
@@ -179,16 +188,16 @@ router.get("/info/:id", async (req, res) => {
 router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await Customer.findByIdAndDelete(id);
+    const deletedUser = await customerList.findByIdAndDelete(id);
     if (!deletedUser) {
-      return res.status(404).json({ message: "Customer not found" });
+      return res.status(404).json({ message: "CustomerList not found" });
     }
     res.status(200).json({
-      message: "Customer deleted successfully",
+      message: "CustomerList deleted successfully",
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error deleting Customer" });
+    res.status(500).json({ message: "Error deleting CustomerList" });
   }
 });
 
