@@ -5,17 +5,11 @@ const CustomerSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
-  unit: String,
-  amount: String,
-  received:String,
-  balance: String,
-  status: {
-    type: String,
-    enum: ["pending", "completed"],
-  },
+  phone: String,
+  address: String,
   date: {
     type: Date,
   },
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model("Customer", CustomerSchema);
+module.exports = mongoose.model("customer", CustomerSchema);

@@ -1,6 +1,5 @@
 const express = require("express");
-const customer = require("../models/customer");
-const customerList = require("../models/customerList");
+const Customer = require("../models/customerList");
 const router = express.Router();
 
 //get
@@ -13,7 +12,7 @@ router.get("/get", async (req, res) => {
 
     if (search) {
       const regex = new RegExp(search, "i");
-      filter.$or = [{ username: regex }, { address: regex }, { phone: regex }];
+      filter.$or = [{ username: regex }, { status: regex }, { amount: regex }];
     }
 
     if (date) {
@@ -27,8 +26,8 @@ router.get("/get", async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [users, total] = await Promise.all([
-      customer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
-      customer.countDocuments(filter),
+      Customer.find(filter).skip(skip).limit(Number(limit)),
+      Customer.countDocuments(filter),
     ]);
 
     res.status(200).json({
@@ -48,33 +47,41 @@ router.get("/get", async (req, res) => {
 
 router.post("/create", async (req, res) => {
   try {
-    const { username, address, phone, date } = req.body;
+    const { username, unit, amount, received, balance, status, date } =
+      req.body;
 
     if (!username) {
       return res.status(400).json({ message: "Username is required" });
     }
 
-    if (!address) {
-      return res.status(400).json({ message: "Address is required" });
+    if (!unit) {
+      return res.status(400).json({ message: "Unit is required" });
     }
 
-    if (!date) {
-      return res.status(400).json({ message: "Date is required" });
+    if (!amount) {
+      return res.status(400).json({ message: "Amount is required" });
     }
 
-    const newCustomer = new customer({
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    if (balance > 0 && status === "completed") {
+      return res
+        .status(400)
+        .json({ message: "Balance should be zero to complete" });
+    }
+
+    const newCustomer = new Customer({
       username,
-      address,
-      phone,
-      date,
+      unit,
+      amount,
+      received,
+      balance,
+      status: status || undefined,
+      date: date || undefined,
     });
-    const savedCustomer = await newCustomer.save();
-
-    const newData = new customerList({
-      customerId: savedCustomer._id,
-    });
-
-    await newData.save();
+    await newCustomer.save();
 
     res.status(201).json({
       message: "Customer created successfully",
@@ -91,27 +98,39 @@ router.post("/create", async (req, res) => {
 
 router.put("/update/:id", async (req, res) => {
   try {
-    const { username, address, phone, date } = req.body;
+    const { username, unit, amount, received, balance, status, date } =
+      req.body;
     const { id } = req.params;
     if (!username) {
       return res.status(400).json({ message: "Username is required" });
     }
-
-    if (!address) {
-      return res.status(400).json({ message: "Address is required" });
+    if (!unit) {
+      return res.status(400).json({ message: "Unit is required" });
+    }
+    if (!amount) {
+      return res.status(400).json({ message: "Amount is required" });
     }
 
-    if (!date) {
-      return res.status(400).json({ message: "Date is required" });
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
     }
 
-    const user = await customer.findByIdAndUpdate(
+    if (balance > 0 && status === "completed") {
+      return res
+        .status(400)
+        .json({ message: "Balance should be zero to complete" });
+    }
+
+    const user = await Customer.findByIdAndUpdate(
       id,
       {
         username,
-        address,
-        phone,
-        date,
+        unit,
+        amount,
+        received,
+        balance,
+        status: status || undefined,
+        date: date || undefined,
       },
       {
         new: true,
@@ -140,7 +159,7 @@ router.get("/info/:id", async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: "Customer not found" });
     }
-    const user = await customer.findById(id);
+    const user = await Customer.findById(id);
 
     if (!user) {
       return res.status(404).json({ message: "Customer not found" });
@@ -160,13 +179,10 @@ router.get("/info/:id", async (req, res) => {
 router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await customer.findByIdAndDelete(id);
-     await customerList.deleteMany({ customerId: id });
-
+    const deletedUser = await Customer.findByIdAndDelete(id);
     if (!deletedUser) {
       return res.status(404).json({ message: "Customer not found" });
     }
-
     res.status(200).json({
       message: "Customer deleted successfully",
     });
@@ -175,6 +191,5 @@ router.delete("/delete/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting Customer" });
   }
 });
-
 
 module.exports = router;

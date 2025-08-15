@@ -3,6 +3,7 @@ require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const customerRouter = require("./routes/customerRoutes");
+const customerListRouter=require("./routes/CustomerListRoutes")
 
 const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
 
@@ -25,6 +26,7 @@ app.use(
 const port = 3000;
 
 app.use("/customers", customerRouter);
+app.use("/list", customerListRouter);
 
 app.listen(port, () => {
   console.log(`Port is running ${port}`);
