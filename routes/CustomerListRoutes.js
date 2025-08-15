@@ -26,7 +26,7 @@ router.get("/get/:id", async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [users, total] = await Promise.all([
-      customerList.find(filter).skip(skip).limit(Number(limit)),
+      customerList.find(filter) .sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
       customerList.countDocuments(filter),
     ]);
 
