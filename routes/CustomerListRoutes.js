@@ -31,7 +31,7 @@ router.get("/get/:id", async (req, res) => {
     ]);
 
     res.status(200).json({
-      message: "CustomerList listed successfully",
+      message: "Customer List listed successfully",
       data: users,
       total,
       page: Number(page),
@@ -89,7 +89,7 @@ router.post("/create", async (req, res) => {
     await newCustomer.save();
 
     res.status(201).json({
-      message: "CustomerList created successfully",
+      message: "Customer List created successfully",
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -123,11 +123,6 @@ router.put("/update/:id", async (req, res) => {
       return res.status(400).json({ message: "Status is required" });
     }
 
-    if (balance > 0 && status === "completed") {
-      return res
-        .status(400)
-        .json({ message: "Balance should be zero to complete" });
-    }
 
     const user = await customerList.findByIdAndUpdate(
       id,
@@ -147,16 +142,16 @@ router.put("/update/:id", async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ message: "CustomerList not found" });
+      return res.status(404).json({ message: "Customer List not found" });
     }
 
     res.status(200).json({
-      message: "CustomerList updated successfully",
+      message: "Customer List updated successfully",
       data: user,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error updating CustomerList" });
+    res.status(500).json({ message: "Error updating Customer List" });
   }
 });
 
@@ -175,11 +170,11 @@ router.get("/info/:id", async (req, res) => {
     }
 
     res.status(200).json({
-      message: "CustomerList  viewed successfully",
+      message: "Customer List  viewed successfully",
       data: user,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching CustomerList" });
+    res.status(500).json({ message: "Error fetching Customer List" });
   }
 });
 
@@ -190,14 +185,14 @@ router.delete("/delete/:id", async (req, res) => {
     const { id } = req.params;
     const deletedUser = await customerList.findByIdAndDelete(id);
     if (!deletedUser) {
-      return res.status(404).json({ message: "CustomerList not found" });
+      return res.status(404).json({ message: "Customer List not found" });
     }
     res.status(200).json({
       message: "CustomerList deleted successfully",
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error deleting CustomerList" });
+    res.status(500).json({ message: "Error deleting Customer List" });
   }
 });
 
