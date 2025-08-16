@@ -123,6 +123,11 @@ router.put("/update/:id", async (req, res) => {
       return res.status(400).json({ message: "Status is required" });
     }
 
+    if (balance > 0 && status === "completed") {
+      return res
+        .status(400)
+        .json({ message: "Balance should be zero to complete" });
+    }
 
     const user = await customerList.findByIdAndUpdate(
       id,
