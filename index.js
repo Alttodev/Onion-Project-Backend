@@ -3,9 +3,12 @@ require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const customerRouter = require("./routes/customerRoutes");
-const customerListRouter=require("./routes/CustomerListRoutes")
+const customerListRouter = require("./routes/CustomerListRoutes")
+const userRouter = require("./routes/userRoutes")
 
-const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
+
+// const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
+const MONGODB_URI = "mongodb+srv://Altto:Altto1997@cluster0.ijrvauo.mongodb.net/Onion-Project";
 
 mongoose
   .connect(MONGODB_URI, {})
@@ -19,8 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    origin:"https://fun-content-fowl.ngrok-free.app",
+    origin: "http://localhost:5174",
+    // origin:"https://fun-content-fowl.ngrok-free.app",
   })
 );
 
@@ -28,6 +31,7 @@ const port = 3000;
 
 app.use("/customers", customerRouter);
 app.use("/list", customerListRouter);
+app.use("/user", userRouter);
 
 app.listen(port, () => {
   console.log(`Port is running ${port}`);
