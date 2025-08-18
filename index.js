@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "http://localhost:5174",
+    origin: "http://localhost:5173",
     // origin:"https://fun-content-fowl.ngrok-free.app",
   })
 );
@@ -32,6 +32,7 @@ const port = 3000;
 app.use("/customers", customerRouter);
 app.use("/list", customerListRouter);
 app.use("/user", userRouter);
+
 
 app.listen(port, () => {
   console.log(`Port is running ${port}`);

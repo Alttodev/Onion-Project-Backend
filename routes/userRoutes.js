@@ -5,7 +5,9 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 const User = require("../models/user");
-const { requestPasswordReset } = require("../components/RequestPassword");
+const { requestPasswordReset } = require("../controllers/RequestPassword");
+const { resetPassword } = require("../controllers/resetPassword");
+
 
 router.post("/signup", async (req, res) => {
   const errors = validationResult(req);
@@ -100,5 +102,6 @@ router.post("/login", async (req, res) => {
 });
 
 router.post('/requestPasswordReset', requestPasswordReset);
+router.post('/resetPassword/:id/:token', resetPassword);
 
 module.exports = router;

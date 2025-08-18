@@ -4,9 +4,8 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const requestPasswordReset = async (req, res) => {
-  const { email } = req.body;
-
-  // Input validation
+    const { email } = req.body;
+    
   if (!email) {
     return res.status(400).json({ message: "Email is required" });
   }
@@ -24,7 +23,7 @@ const requestPasswordReset = async (req, res) => {
       { expiresIn: "15m" } 
     );
 
-    const resetURL = `http://localhost:5174/reset-password?token=${token}&id=${user._id}`;
+    const resetURL = `http://localhost:5173/reset-password?token=${token}&id=${user._id}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -35,7 +34,7 @@ const requestPasswordReset = async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+      from: `"SMA Traders" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: "Password Reset Request",
       html: `
