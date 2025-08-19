@@ -10,7 +10,7 @@ const resetPassword = async (req, res) => {
   try {
     const user = await User.findById(id);
     if (!user) {
-      return res.status(400).json({ message: "User not exists!" });
+      return res.status(400).json({ message: "User not exists" });
     }
 
     const secret = process.env.JWT_SECRET + user.password;

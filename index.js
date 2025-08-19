@@ -22,10 +22,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    // origin:"https://fun-content-fowl.ngrok-free.app",
+    origin: ["http://localhost:5173", "https://fun-content-fowl.ngrok-free.app"],
   })
 );
+
 
 const port = 3000;
 
