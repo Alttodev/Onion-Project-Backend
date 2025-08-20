@@ -23,7 +23,7 @@ const requestPasswordReset = async (req, res) => {
       { expiresIn: "15m" } 
     );
 
-    const resetURL = `http://localhost:5173/reset-password?token=${token}&id=${user._id}`;
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password?token=${token}&id=${user._id}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
