@@ -41,7 +41,7 @@ const requestPasswordReset = async (req, res) => {
         <h2>Password Reset</h2>
         <p>You requested a password reset. Click the button below:</p>
         <a href="${resetURL}" style="
-          background: #4e73df;
+          background:green;
           color: white;
           padding: 10px 20px;
           text-decoration: none;
