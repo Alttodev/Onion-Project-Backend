@@ -3,12 +3,13 @@ require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const customerRouter = require("./routes/customerRoutes");
-const customerListRouter = require("./routes/CustomerListRoutes")
-const userRouter = require("./routes/userRoutes")
-
+const customerListRouter = require("./routes/customerListRoutes");
+const userRouter = require("./routes/userRoutes");
+const customerNameRouter = require("./routes/customerNameRoutes");
 
 // const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
-const MONGODB_URI = "mongodb+srv://Altto:Altto1997@cluster0.ijrvauo.mongodb.net/Onion-Project";
+const MONGODB_URI =
+  "mongodb+srv://Altto:Altto1997@cluster0.ijrvauo.mongodb.net/Onion-Project";
 
 mongoose
   .connect(MONGODB_URI, {})
@@ -28,15 +29,13 @@ app.use(
   })
 );
 
-
 const port = 3000;
 
 app.use("/customers", customerRouter);
 app.use("/list", customerListRouter);
 app.use("/user", userRouter);
-
+app.use("/essential",customerNameRouter);
 
 app.listen(port, async () => {
   console.log(`Port is running ${port}`);
-  
 });

@@ -17,6 +17,7 @@ const CustomerListSchema = new mongoose.Schema(
       type: Date,
     },
     customerId: {
+      // type: mongoose.Schema.Types.ObjectId,
       type: String,
       required: true,
     },
