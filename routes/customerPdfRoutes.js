@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const customerOrder = require("../models/customerOrder");
+const Customer = require("../models/customer"); 
 const PDFDocument = require("pdfkit");
 
 router.get("/pdf", async (req, res) => {
@@ -16,11 +17,26 @@ router.get("/pdf", async (req, res) => {
       query.createdDate = { $gte: start, $lte: end };
     }
 
-    if (name) {
-      query.username = { $regex: name, $options: "i" };
-    }
+    let orders = await customerOrder.find(query).lean();
 
-    const orders = await customerOrder.find(query);
+    const customerIds = orders.map((o) => o.customerId);
+    const customers = await Customer.find({ _id: { $in: customerIds } }).lean();
+
+    const customerMap = {};
+    customers.forEach((c) => {
+      customerMap[c._id] = c.username;
+    });
+
+    orders = orders.map((o) => ({
+      ...o,
+      username: customerMap[o.customerId] || "-",
+    }));
+
+    if (name) {
+      orders = orders.filter((o) =>
+        o.username.toLowerCase().includes(name.toLowerCase())
+      );
+    }
 
     if (!orders.length) {
       return res.status(404).json({ message: "No orders found" });
@@ -29,7 +45,6 @@ router.get("/pdf", async (req, res) => {
     const doc = new PDFDocument({ margin: 30, size: "A4" });
 
     res.setHeader("Content-Type", "application/pdf");
-
     const filenameParts = [
       "orders",
       name ? name : "all",
@@ -50,7 +65,7 @@ router.get("/pdf", async (req, res) => {
     }
     doc.moveDown(2);
 
-    // Table Config
+    // Table config
     const tableTop = 120;
     const rowHeight = 22;
     const colWidths = [35, 90, 55, 55, 55, 55, 75, 75];
@@ -68,6 +83,7 @@ router.get("/pdf", async (req, res) => {
     let x = 40;
     let y = tableTop;
 
+    // Header
     doc.fontSize(9).font("Helvetica-Bold");
     columns.forEach((col, i) => {
       doc.text(col, x + 2, y + 6, { width: colWidths[i], align: "center" });
@@ -78,6 +94,7 @@ router.get("/pdf", async (req, res) => {
     y += rowHeight;
     doc.fontSize(8).font("Helvetica");
 
+    // Rows
     orders.forEach((order, i) => {
       x = 40;
       const rowData = [
