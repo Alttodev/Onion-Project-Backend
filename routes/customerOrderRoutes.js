@@ -21,14 +21,23 @@ router.get("/get", async (req, res) => {
       ];
     }
 
-    if (from && to) {
-      const start = new Date(from);
-      start.setUTCHours(0, 0, 0, 0);
+    if (from || to) {
+      let dateFilter = {};
 
-      const end = new Date(to);
-      end.setUTCHours(23, 59, 59, 999);
+      if (from) {
+        const start = new Date(from);
+        start.setHours(0, 0, 0, 0);
+        dateFilter.$gte = start;
+      }
 
-      filter.createdDate = { $gte: start, $lte: end };
+      if (to) {
+        const end = new Date(to);
+        end.setDate(end.getDate() + 1);
+        end.setHours(0, 0, 0, 0);
+        dateFilter.$lt = end;
+      }
+
+      filter.createdDate = dateFilter;
     }
 
     const skip = (Number(page) - 1) * Number(limit);
