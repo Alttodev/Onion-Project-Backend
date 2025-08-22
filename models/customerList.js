@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const CustomerListSchema = new mongoose.Schema(
   {
+    username:String,
     unit: String,
     amount: String,
     received: String,

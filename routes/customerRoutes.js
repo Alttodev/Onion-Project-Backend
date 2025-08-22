@@ -1,6 +1,7 @@
 const express = require("express");
 const customer = require("../models/customer");
 const customerList = require("../models/customerList");
+const customerOrder = require("../models/customerOrder");
 const router = express.Router();
 
 //get
@@ -160,6 +161,7 @@ router.delete("/delete/:id", async (req, res) => {
     const { id } = req.params;
     const deletedUser = await customer.findByIdAndDelete(id);
     await customerList.deleteMany({ customerId: id });
+    await customerOrder.deleteMany({customerId: id})
 
     if (!deletedUser) {
       return res.status(404).json({ message: "Customer not found" });

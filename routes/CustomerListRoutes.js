@@ -13,7 +13,7 @@ router.get("/get/:id", async (req, res) => {
 
     if (search) {
       const regex = new RegExp(search, "i");
-      filter.$or = [{ status: regex }, { amount: regex },{unit: regex}];
+      filter.$or = [{ status: regex }, { amount: regex }, { unit: regex }];
     }
 
     if (date) {
@@ -53,6 +53,7 @@ router.get("/get/:id", async (req, res) => {
 router.post("/create", async (req, res) => {
   try {
     const {
+      username,
       unit,
       amount,
       received,
@@ -73,6 +74,7 @@ router.post("/create", async (req, res) => {
     }
 
     const newList = new customerList({
+      username,
       unit,
       amount,
       received,
@@ -85,6 +87,7 @@ router.post("/create", async (req, res) => {
     await newList.save();
 
     const newOrder = new customerOrder({
+      username,
       unit,
       amount,
       received,
@@ -93,7 +96,7 @@ router.post("/create", async (req, res) => {
       createdDate,
       updatedDate,
       customerId,
-      listId: newList._id, 
+      listId: newList._id,
     });
     await newOrder.save();
 
@@ -110,12 +113,12 @@ router.post("/create", async (req, res) => {
   }
 });
 
-
 //update
 
 router.put("/update/:id", async (req, res) => {
   try {
     const {
+      username,
       unit,
       amount,
       received,
@@ -140,6 +143,7 @@ router.put("/update/:id", async (req, res) => {
     const updatedList = await customerList.findByIdAndUpdate(
       id,
       {
+        username,
         unit,
         amount,
         received,
@@ -147,7 +151,7 @@ router.put("/update/:id", async (req, res) => {
         status,
         customerId,
         createdDate: createdDate || undefined,
-        updatedDate
+        updatedDate,
       },
       { new: true }
     );
@@ -160,6 +164,7 @@ router.put("/update/:id", async (req, res) => {
       await customerOrder.findByIdAndUpdate(
         updatedList.orderId,
         {
+          username,
           unit,
           amount,
           received,
@@ -167,7 +172,7 @@ router.put("/update/:id", async (req, res) => {
           status,
           customerId,
           createdDate: createdDate || undefined,
-          updatedDate
+          updatedDate,
         },
         { new: true }
       );
@@ -182,7 +187,6 @@ router.put("/update/:id", async (req, res) => {
     res.status(500).json({ message: "Error updating Customer List" });
   }
 });
-
 
 //info
 router.get("/info/:id", async (req, res) => {
@@ -213,7 +217,7 @@ router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await customerList.findByIdAndDelete(id);
-      await customerOrder.deleteOne({ _id: deletedUser.orderId });
+    await customerOrder.deleteOne({ _id: deletedUser.orderId });
 
     if (!deletedUser) {
       return res.status(404).json({ message: "Customer List not found" });

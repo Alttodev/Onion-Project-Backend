@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const customerOrder = require("../models/customerOrder");
-const Customer = require("../models/customer"); 
-const PDFDocument = require("pdfkit");
+const Customer = require("../models/customer");
+const ExcelJS = require("exceljs");
 
-router.get("/pdf", async (req, res) => {
+router.get("/excel", async (req, res) => {
   try {
     const { name, from, to } = req.query;
     let query = {};
 
+    // Date filter
     if (from && to) {
       const start = new Date(from);
       start.setUTCHours(0, 0, 0, 0);
@@ -17,133 +18,76 @@ router.get("/pdf", async (req, res) => {
       query.createdDate = { $gte: start, $lte: end };
     }
 
+    // Fetch orders
     let orders = await customerOrder.find(query).lean();
 
+    // Fetch customers
     const customerIds = orders.map((o) => o.customerId);
     const customers = await Customer.find({ _id: { $in: customerIds } }).lean();
-
     const customerMap = {};
-    customers.forEach((c) => {
-      customerMap[c._id] = c.username;
-    });
+    customers.forEach((c) => (customerMap[c._id] = c.username));
+    orders = orders.map((o) => ({ ...o, username: customerMap[o.customerId] || "-" }));
 
-    orders = orders.map((o) => ({
-      ...o,
-      username: customerMap[o.customerId] || "-",
-    }));
-
+    // Filter by name if provided
     if (name) {
-      orders = orders.filter((o) =>
-        o.username.toLowerCase().includes(name.toLowerCase())
-      );
+      orders = orders.filter((o) => o.username.toLowerCase().includes(name.toLowerCase()));
     }
 
     if (!orders.length) {
       return res.status(404).json({ message: "No orders found" });
     }
 
-    const doc = new PDFDocument({ margin: 30, size: "A4" });
+    // Create workbook
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Customer Orders");
 
-    res.setHeader("Content-Type", "application/pdf");
-    const filenameParts = [
-      "orders",
-      name ? name : "all",
-      from ? from : "start",
-      to ? to : "end",
+    // Columns
+    sheet.columns = [
+      { header: "S.No", key: "sno", width: 10 },
+      { header: "Customer", key: "customer", width: 25 },
+      { header: "Kg", key: "unit", width: 15 },
+      { header: "Amount", key: "amount", width: 15 },
+      { header: "Received", key: "received", width: 15 },
+      { header: "Balance", key: "balance", width: 15 },
+      { header: "Purchased", key: "purchased", width: 20 },
+      { header: "Completed", key: "completed", width: 20 },
     ];
+
+    // Add rows
+    orders.forEach((order, index) => {
+      sheet.addRow({
+        sno: index + 1,
+        customer: order.username || "-",
+        unit: order.unit || "-",
+        amount: order.amount || "-",
+        received: order.received || "-",
+        balance: order.balance || "-",
+        purchased: order.createdDate ? new Date(order.createdDate).toLocaleDateString() : "-",
+        completed: order.updatedDate ? new Date(order.updatedDate).toLocaleDateString() : "-",
+      });
+    });
+
+    // Styling (optional)
+    sheet.getRow(1).font = { bold: true }; // header bold
+    sheet.columns.forEach((col) => {
+      col.alignment = { horizontal: "center" };
+    });
+
+    // Send Excel file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${filenameParts.join("_")}.pdf`
+      `attachment; filename=orders_${name || "all"}_${from || "start"}_to_${to || "end"}.xlsx`
     );
 
-    doc.pipe(res);
-
-    // Title
-    doc.fontSize(16).text("Customer Orders Report", { align: "center" });
-    if (name) {
-      doc.moveDown(0.5).fontSize(12).text(`Customer: ${name}`, { align: "center" });
-    }
-    doc.moveDown(2);
-
-    // Table config
-    const tableTop = 120;
-    const rowHeight = 22;
-    const colWidths = [35, 90, 55, 55, 55, 55, 75, 75];
-    const columns = [
-      "S.No",
-      "Customer",
-      "Kg",
-      "Amount",
-      "Received",
-      "Balance",
-      "Purchased",
-      "Completed",
-    ];
-
-    let x = 40;
-    let y = tableTop;
-
-    // Header
-    doc.fontSize(9).font("Helvetica-Bold");
-    columns.forEach((col, i) => {
-      doc.text(col, x + 2, y + 6, { width: colWidths[i], align: "center" });
-      doc.rect(x, y, colWidths[i], rowHeight).stroke();
-      x += colWidths[i];
-    });
-
-    y += rowHeight;
-    doc.fontSize(8).font("Helvetica");
-
-    // Rows
-    orders.forEach((order, i) => {
-      x = 40;
-      const rowData = [
-        i + 1,
-        order.username || "-",
-        order.unit || "-",
-        order.amount || "-",
-        order.received || "-",
-        order.balance || "-",
-        order.createdDate
-          ? new Date(order.createdDate).toLocaleDateString()
-          : "-",
-        order.updatedDate
-          ? new Date(order.updatedDate).toLocaleDateString()
-          : "-",
-      ];
-
-      rowData.forEach((data, j) => {
-        doc.text(String(data), x + 2, y + 6, {
-          width: colWidths[j],
-          align: "center",
-        });
-        doc.rect(x, y, colWidths[j], rowHeight).stroke();
-        x += colWidths[j];
-      });
-
-      y += rowHeight;
-
-      if (y > 750) {
-        doc.addPage();
-        y = tableTop;
-
-        x = 40;
-        doc.fontSize(9).font("Helvetica-Bold");
-        columns.forEach((col, i) => {
-          doc.text(col, x + 2, y + 6, { width: colWidths[i], align: "center" });
-          doc.rect(x, y, colWidths[i], rowHeight).stroke();
-          x += colWidths[i];
-        });
-
-        y += rowHeight;
-        doc.fontSize(8).font("Helvetica");
-      }
-    });
-
-    doc.end();
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (err) {
-    console.error("PDF Export Error:", err);
-    res.status(500).json({ message: "Error exporting PDF" });
+    console.error("Excel Export Error:", err);
+    res.status(500).json({ message: "Error exporting Excel" });
   }
 });
 
