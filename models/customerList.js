@@ -8,7 +8,7 @@ const CustomerListSchema = new mongoose.Schema(
     balance: String,
     status: {
       type: String,
-      enum: ["pending", "completed"],
+      enum: ["pending", "completed","ordered"],
     },
     createdDate: {
       type: Date,
@@ -17,10 +17,10 @@ const CustomerListSchema = new mongoose.Schema(
       type: Date,
     },
     customerId: {
-      // type: mongoose.Schema.Types.ObjectId,
       type: String,
       required: true,
     },
+    orderId: { type: mongoose.Schema.Types.ObjectId, ref: "customerOrder" },
   },
   { timestamps: true }
 );

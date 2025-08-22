@@ -6,6 +6,7 @@ const customerRouter = require("./routes/customerRoutes");
 const customerListRouter = require("./routes/customerListRoutes");
 const userRouter = require("./routes/userRoutes");
 const customerNameRouter = require("./routes/customerNameRoutes");
+const customerOrderRouter= require("./routes/customerOrderRoutes");
 
 // const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
 const MONGODB_URI =
@@ -34,7 +35,9 @@ const port = 3000;
 app.use("/customers", customerRouter);
 app.use("/list", customerListRouter);
 app.use("/user", userRouter);
-app.use("/essential",customerNameRouter);
+app.use("/essential", customerNameRouter);
+app.use("/order", customerOrderRouter);
+
 
 app.listen(port, async () => {
   console.log(`Port is running ${port}`);

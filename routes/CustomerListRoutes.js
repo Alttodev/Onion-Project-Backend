@@ -1,5 +1,6 @@
 const express = require("express");
 const customerList = require("../models/customerList");
+const customerOrder = require("../models/customerOrder");
 const router = express.Router();
 
 //get
@@ -12,7 +13,7 @@ router.get("/get/:id", async (req, res) => {
 
     if (search) {
       const regex = new RegExp(search, "i");
-      filter.$or = [{ status: regex }, { amount: regex }];
+      filter.$or = [{ status: regex }, { amount: regex },{unit: regex}];
     }
 
     if (date) {
@@ -26,7 +27,11 @@ router.get("/get/:id", async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [users, total] = await Promise.all([
-      customerList.find(filter) .sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+      customerList
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit)),
       customerList.countDocuments(filter),
     ]);
 
@@ -58,43 +63,53 @@ router.post("/create", async (req, res) => {
       updatedDate,
     } = req.body;
 
-    if (!unit) {
-      return res.status(400).json({ message: "Unit is required" });
-    }
-
-    if (!amount) {
-      return res.status(400).json({ message: "Amount is required" });
-    }
-
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
-    }
-
+    if (!unit) return res.status(400).json({ message: "Unit is required" });
+    if (!amount) return res.status(400).json({ message: "Amount is required" });
+    if (!status) return res.status(400).json({ message: "Status is required" });
     if (balance > 0 && status === "completed") {
       return res
         .status(400)
         .json({ message: "Balance should be zero to complete" });
     }
 
-    const newCustomer = new customerList({
+    const newList = new customerList({
       unit,
       amount,
       received,
       balance,
-      status: status || undefined,
-      createdDate: createdDate || undefined,
-      updatedDate: updatedDate || undefined,
+      status,
+      createdDate,
+      updatedDate,
       customerId,
     });
-    await newCustomer.save();
+    await newList.save();
+
+    const newOrder = new customerOrder({
+      unit,
+      amount,
+      received,
+      balance,
+      status,
+      createdDate,
+      updatedDate,
+      customerId,
+      listId: newList._id, 
+    });
+    await newOrder.save();
+
+    newList.orderId = newOrder._id;
+    await newList.save();
 
     res.status(201).json({
-      message: "Customer List created successfully",
+      message: "Customer List  created successfully",
+      data: newList,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 //update
 
@@ -112,16 +127,9 @@ router.put("/update/:id", async (req, res) => {
     } = req.body;
     const { id } = req.params;
 
-    if (!unit) {
-      return res.status(400).json({ message: "Unit is required" });
-    }
-    if (!amount) {
-      return res.status(400).json({ message: "Amount is required" });
-    }
-
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
-    }
+    if (!unit) return res.status(400).json({ message: "Unit is required" });
+    if (!amount) return res.status(400).json({ message: "Amount is required" });
+    if (!status) return res.status(400).json({ message: "Status is required" });
 
     if (balance > 0 && status === "completed") {
       return res
@@ -129,36 +137,52 @@ router.put("/update/:id", async (req, res) => {
         .json({ message: "Balance should be zero to complete" });
     }
 
-    const user = await customerList.findByIdAndUpdate(
+    const updatedList = await customerList.findByIdAndUpdate(
       id,
       {
         unit,
         amount,
         received,
         balance,
+        status,
         customerId,
-        status: status || undefined,
         createdDate: createdDate || undefined,
-        updatedDate: updatedDate || undefined,
+        updatedDate
       },
-      {
-        new: true,
-      }
+      { new: true }
     );
 
-    if (!user) {
+    if (!updatedList) {
       return res.status(404).json({ message: "Customer List not found" });
     }
 
+    if (updatedList.orderId) {
+      await customerOrder.findByIdAndUpdate(
+        updatedList.orderId,
+        {
+          unit,
+          amount,
+          received,
+          balance,
+          status,
+          customerId,
+          createdDate: createdDate || undefined,
+          updatedDate
+        },
+        { new: true }
+      );
+    }
+
     res.status(200).json({
-      message: "Customer List updated successfully",
-      data: user,
+      message: "Customer List  updated successfully",
+      data: updatedList,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Update error:", err.message);
     res.status(500).json({ message: "Error updating Customer List" });
   }
 });
+
 
 //info
 router.get("/info/:id", async (req, res) => {
@@ -189,6 +213,8 @@ router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await customerList.findByIdAndDelete(id);
+      await customerOrder.deleteOne({ _id: deletedUser.orderId });
+
     if (!deletedUser) {
       return res.status(404).json({ message: "Customer List not found" });
     }

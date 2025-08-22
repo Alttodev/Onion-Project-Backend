@@ -2,14 +2,14 @@ const mongoose = require("mongoose");
 
 const CustomerOrderSchema = new mongoose.Schema(
   {
-    userName: String,
+    username: String,
     unit: String,
     amount: String,
     received: String,
     balance: String,
     status: {
       type: String,
-      enum: ["pending", "completed"],
+      enum: ["pending", "completed","ordered"],
     },
     createdDate: {
       type: Date,
@@ -21,6 +21,7 @@ const CustomerOrderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    listId: { type: mongoose.Schema.Types.ObjectId, ref: "customerList" },
   },
   { timestamps: true }
 );

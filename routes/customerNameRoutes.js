@@ -2,11 +2,14 @@ const express = require("express");
 const Customer = require("../models/customer");
 const router = express.Router();
 
+
+//essential
+
 router.get("/get", async (req, res) => {
   try {
     const { name } = req.query;
 
-    if (name !== "customer") {
+    if (name !== "username") {
       return res.status(400).json({
         message: "Invalid name parameter",
         data: [],
