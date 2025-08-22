@@ -1,4 +1,3 @@
-// routes/export.js
 const express = require("express");
 const router = express.Router();
 const customerOrder = require("../models/customerOrder");
@@ -7,40 +6,39 @@ const PDFDocument = require("pdfkit");
 router.get("/pdf", async (req, res) => {
   try {
     const { name, from, to } = req.query;
+    let query = {};
 
-    if (!from || !to) {
-      return res
-        .status(400)
-        .json({ message: "From and To dates are required" });
+    if (from && to) {
+      const start = new Date(from);
+      start.setUTCHours(0, 0, 0, 0);
+      const end = new Date(to);
+      end.setUTCHours(23, 59, 59, 999);
+      query.createdDate = { $gte: start, $lte: end };
     }
 
-    const start = new Date(from);
-    start.setUTCHours(0, 0, 0, 0);
-
-    const end = new Date(to);
-    end.setUTCHours(23, 59, 59, 999);
-
-    // Build query
-    let query = {
-      createdDate: { $gte: start, $lte: end },
-    };
-
     if (name) {
-      query.username = { $regex: name, $options: "i" }; // case-insensitive search
+      query.username = { $regex: name, $options: "i" };
     }
 
     const orders = await customerOrder.find(query);
 
     if (!orders.length) {
-      return res.status(404).json({ message: "No orders found in range" });
+      return res.status(404).json({ message: "No orders found" });
     }
 
-    // Create PDF
     const doc = new PDFDocument({ margin: 30, size: "A4" });
+
     res.setHeader("Content-Type", "application/pdf");
+
+    const filenameParts = [
+      "orders",
+      name ? name : "all",
+      from ? from : "start",
+      to ? to : "end",
+    ];
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=orders_${name || "all"}_${from}_to_${to}.pdf`
+      `attachment; filename=${filenameParts.join("_")}.pdf`
     );
 
     doc.pipe(res);
@@ -48,9 +46,7 @@ router.get("/pdf", async (req, res) => {
     // Title
     doc.fontSize(16).text("Customer Orders Report", { align: "center" });
     if (name) {
-      doc.moveDown(0.5).fontSize(12).text(`Customer: ${name}`, {
-        align: "center",
-      });
+      doc.moveDown(0.5).fontSize(12).text(`Customer: ${name}`, { align: "center" });
     }
     doc.moveDown(2);
 
@@ -58,7 +54,6 @@ router.get("/pdf", async (req, res) => {
     const tableTop = 120;
     const rowHeight = 22;
     const colWidths = [35, 90, 55, 55, 55, 55, 75, 75];
-
     const columns = [
       "S.No",
       "Customer",
@@ -74,20 +69,17 @@ router.get("/pdf", async (req, res) => {
     let y = tableTop;
 
     doc.fontSize(9).font("Helvetica-Bold");
-
     columns.forEach((col, i) => {
       doc.text(col, x + 2, y + 6, { width: colWidths[i], align: "center" });
       doc.rect(x, y, colWidths[i], rowHeight).stroke();
       x += colWidths[i];
     });
 
-    // Rows
     y += rowHeight;
     doc.fontSize(8).font("Helvetica");
 
     orders.forEach((order, i) => {
       x = 40;
-
       const rowData = [
         i + 1,
         order.username || "-",
@@ -121,10 +113,7 @@ router.get("/pdf", async (req, res) => {
         x = 40;
         doc.fontSize(9).font("Helvetica-Bold");
         columns.forEach((col, i) => {
-          doc.text(col, x + 2, y + 6, {
-            width: colWidths[i],
-            align: "center",
-          });
+          doc.text(col, x + 2, y + 6, { width: colWidths[i], align: "center" });
           doc.rect(x, y, colWidths[i], rowHeight).stroke();
           x += colWidths[i];
         });
