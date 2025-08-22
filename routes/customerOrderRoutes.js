@@ -45,7 +45,7 @@ router.get("/get", async (req, res) => {
     const [users, total] = await Promise.all([
       customerOrder
         .find(filter)
-        .sort({ createdDate: -1 })
+        .sort({ createdAt: -1, })
         .skip(skip)
         .limit(Number(limit)),
       customerOrder.countDocuments(filter),
