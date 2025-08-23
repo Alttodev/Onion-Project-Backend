@@ -44,7 +44,7 @@ router.get("/excel", async (req, res) => {
     // Columns
     sheet.columns = [
       { header: "S.No", key: "sno", width: 10 },
-      { header: "Customer", key: "customer", width: 25 },
+      { header: "Customer Name", key: "customer", width: 25 },
       { header: "Kg", key: "unit", width: 15 },
       { header: "Amount", key: "amount", width: 15 },
       { header: "Received", key: "received", width: 15 },
