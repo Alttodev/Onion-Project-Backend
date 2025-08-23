@@ -51,6 +51,7 @@ router.get("/excel", async (req, res) => {
       { header: "Balance", key: "balance", width: 15 },
       { header: "Purchased", key: "purchased", width: 20 },
       { header: "Completed", key: "completed", width: 20 },
+      { header: "Status", key: "status", width: 20 },
     ];
 
     // Add rows
@@ -64,6 +65,7 @@ router.get("/excel", async (req, res) => {
         balance: order.balance || "-",
         purchased: order.createdDate ? new Date(order.createdDate).toLocaleDateString() : "-",
         completed: order.updatedDate ? new Date(order.updatedDate).toLocaleDateString() : "-",
+        status: order.status || "-",
       });
     });
 
