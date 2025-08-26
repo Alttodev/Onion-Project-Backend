@@ -30,7 +30,7 @@ app.use(
   })
 );
 
-const port = 3000;
+const port = 4000;
 
 app.use("/customers", customerRouter);
 app.use("/list", customerListRouter);
