@@ -3,7 +3,7 @@ require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const customerRouter = require("./routes/customerRoutes");
-const customerListRouter = require("./routes/customerListRoutesb");
+const customerListRouter = require("./routes/customerListRoutes");
 const userRouter = require("./routes/userRoutes");
 const customerNameRouter = require("./routes/customerNameRoutes");
 const customerOrderRouter = require("./routes/customerOrderRoutes");
