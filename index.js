@@ -10,8 +10,7 @@ const customerOrderRouter = require("./routes/customerOrderRoutes");
 const customerPdfRouter = require("./routes/customerPdfRoutes");
 
 // const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
-const MONGODB_URI =
-  "mongodb+srv://Altto:Altto1997@cluster0.ijrvauo.mongodb.net/Onion-Project";
+const MONGODB_URI =process.env.MONGO_URL
 
 mongoose
   .connect(MONGODB_URI, {})
