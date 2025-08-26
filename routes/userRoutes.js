@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 const User = require("../models/user");
-const { requestPasswordReset } = require("../controllers/requestPasswordb");
+const { requestPasswordReset } = require("../controllers/requestPassword");
 const { resetPassword } = require("../controllers/resetPassword");
 
 
