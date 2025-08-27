@@ -16,7 +16,7 @@ router.get("/get", async (req, res) => {
       });
     }
 
-    const customers = await Customer.find().select("_id username");
+    const customers = await Customer.find().sort({ createdAt: -1 }).select("_id username");
 
     res.status(200).json({
       message: "CustomerName listed successfully",
