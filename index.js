@@ -10,7 +10,7 @@ const customerOrderRouter = require("./routes/customerOrderRoutes");
 const customerPdfRouter = require("./routes/customerPdfRoutes");
 
 // const MONGODB_URI = "mongodb://localhost:27017/ONION-SHOP";
-const MONGODB_URI =process.env.MONGO_URL
+const MONGODB_URI = process.env.MONGO_URL;
 
 mongoose
   .connect(MONGODB_URI, {})
@@ -26,7 +26,7 @@ app.use(
   cors({
     // origin:"https://sma-traders.netlify.app",
     origin: "*",
-    // credentials: true,
+    credentials: true,
   })
 );
 
