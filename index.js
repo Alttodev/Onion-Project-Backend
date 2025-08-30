@@ -24,8 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin:"https://sma-traders.netlify.app",
-    // origin: "*",
+    // origin:"https://sma-traders.netlify.app",
+    origin: "*",
     // credentials: true,
   })
 );
